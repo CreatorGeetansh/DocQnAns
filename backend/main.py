@@ -14,9 +14,8 @@ from langchain.chains import RetrievalQA
 from langchain_google_genai import ChatGoogleGenerativeAI
 # from langchain.memory import ConversationBufferMemory # Optional for history
 
-# Local imports
-from utils.logging_config import setup_logging, get_logger
-from utils import config, processing
+from .utils.logging_config import setup_logging, get_logger # Note the leading dot
+from . import utils
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 # --- Setup ---
