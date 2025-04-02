@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocQnA - Document Question Answering</title>
+    <style>
+        :root {
+            /* Bright vibrant color scheme */
+            --primary-color: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --secondary-color: #06b6d4;
+            --text-color: #1e293b;
+            --text-light: #64748b;
+            --bg-color: #ffffff;
+            --bg-light: #f8fafc;
+            --bg-dark: #f1f5f9;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            /* Bright gradient */
+            --gradient-start: #3b82f6;
+            --gradient-end: #06b6d4;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 1rem;
+            --transition: all 0.3s ease;
+        }
+
+        .dark-theme {
+            --primary-color: #60a5fa;
+            --primary-light: #93c5fd;
+            --primary-dark: #3b82f6;
+            --text-color: #f8fafc;
+            --text-light: #cbd5e1;
+            --bg-color: #0f172a;
+            --bg-light: #1e293b;
+            --bg-dark: #0f172a;
+            --border-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            /* Bright gradient for dark mode */
+            --gradient-start: #3b82f6;
+            --gradient-end: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Header Styles */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 1.5rem;
+            height: calc(100vh - 120px);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+
+        /* Panel Styles */
+        .panel {
+            flex: 1;
+            background-color: var(--bg-light);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+
+        .panel-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+        }
+
+        .panel-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Document Panel Styles */
+        .document-panel {
+            max-width: 40%;
+        }
+
+        .upload-container {
+            padding: 1.5rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary-light);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .upload-icon {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+        }
+
+        .upload-subtext {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .document-list-container {
+            padding: 1.25rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .document-list-container h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .document-list {
+            list-style: none;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .document-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+            border-color: var(--primary-light);
+        }
+
+        .document-icon {
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+        }
+
+        .document-info {
+            flex: 1;
+        }
+
+        .document-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            word-break: break-all;
+        }
+
+        .document-meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .document-actions {
+            display: flex;
+        }
+
+        .document-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+
+        .document-actions button:hover {
+            color: var(--error-color);
+        }
+
+        .document-count {
+            font-size: 0.875rem;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+
+        /* Chat Panel Styles */
+        .chat-panel {
+            max-width: 60%;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: var(--bg-color);
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .message.system .message-content {
+            background-color: var(--bg-dark);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border-radius: var(--radius-md);
+        }
+
+        .message.assistant .message-content {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .message-content p {
+            margin-bottom: 0.5rem;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+            text-align: right;
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-light);
+        }
+
+        .input-wrapper {
+            display: flex;
+            position: relative;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            padding-right: 3rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: var(--transition);
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        #chat-input:disabled {
+            background-color: var(--bg-dark);
+            cursor: not-allowed;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .send-button:hover {
+            color: var(--primary-dark);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .send-button:disabled {
+            color: var(--text-light);
+            cursor: not-allowed;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-outline {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 50%;
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-icon:hover {
+            background-color: var(--bg-dark);
+            transform: rotate(15deg);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(6, 182, 212, 0.9));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        #loading-text {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--bg-dark);
+            border-radius: var(--radius-md);
+            width: fit-content;
+            margin-top: 0.5rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .document-panel, .chat-panel {
+                max-width: 100%;
+                height: 50vh;
+            }
+        }
+
+        .empty-message {
+            color: var(--text-light);
+            text-align: center;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <h1>DocQnA</h1>
+            </div>
+            <div class="header-actions">
+                <button id="clear-docs-btn" class="btn btn-outline">Clear Documents</button>
+                <button id="theme-toggle" class="btn btn-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Panel - Document Upload -->
+            <section class="panel document-panel">
+                <div class="panel-header">
+                    <h2>Document Upload</h2>
+                    <span class="document-count" id="document-count">0 documents</span>
+                </div>
+                
+                <div class="upload-container" id="upload-container">
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        </div>
+                        <p class="upload-text">Drag & drop your documents here</p>
+                        <p class="upload-subtext">or</p>
+                        <label for="file-input" class="btn btn-primary">Browse Files</label>
+                        <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt" hidden>
+                    </div>
+                </div>
+
+                <div class="document-list-container">
+                    <h3>Uploaded Documents</h3>
+                    <ul class="document-list" id="document-list">
+                        <!-- Documents will be added here dynamically -->
+                        <li class="empty-message">No documents uploaded yet</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Right Panel - Chat Interface -->
+            <section class="panel chat-panel">
+                <div class="panel-header">
+                    <h2>Chat with your Documents</h2>
+                </div>
+                
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p>Hello! I'm your document assistant. Upload documents on the left, then ask me questions about them.</p>
+                                <div class="message-time">Just now</div>
+                            </div>
+                        </div>
+                        <!-- Chat messages will be added here dynamically -->
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <form id="chat-form">
+                            <div class="input-wrapper">
+                                <input 
+                                    type="text" 
+                                    id="chat-input" 
+                                    placeholder="Upload documents first to start chatting..." 
+                                    autocomplete="off"
+                                    disabled
+                                >
+                                <button type="submit" class="send-button" disabled id="send-button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loading-text">Processing your documents...</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const documentList = document.getElementById('document-list');
+            const documentCount = document.getElementById('document-count');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-button');
+            const clearDocsBtn = document.getElementById('clear-docs-btn');
+            const themeToggle = document.getElementById('theme-toggle');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingText = document.getElementById('loading-text');
+    
+            // State
+            let documents = []; // Will store { id: string, name: string, size: string, type: string, uploadDate: string }
+            let isDarkTheme = false;
+    
+            // API Endpoints (Make sure these are correct)
+            const API_BASE_URL = 'http://localhost:8000'; // Change if your backend runs elsewhere
+            const UPLOAD_ENDPOINT = `${API_BASE_URL}/api/upload`;
+            const QUERY_ENDPOINT = `${API_BASE_URL}/api/query`;
+    
+            // Initialize
+            init();
+    
+            // Functions
+            function init() {
+                // Set up event listeners
+                uploadArea.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', handleFileSelect);
+                uploadArea.addEventListener('dragover', handleDragOver);
+                uploadArea.addEventListener('dragleave', handleDragLeave);
+                uploadArea.addEventListener('drop', handleDrop);
+                chatForm.addEventListener('submit', handleChatSubmit);
+                clearDocsBtn.addEventListener('click', clearDocuments);
+                themeToggle.addEventListener('click', toggleTheme);
+    
+                // Check for saved documents in localStorage
+                const savedDocuments = localStorage.getItem('docqna-documents');
+                if (savedDocuments) {
+                    try {
+                        documents = JSON.parse(savedDocuments);
+                        updateDocumentList();
+                        updateChatState();
+                    } catch (e) {
+                        console.error("Error parsing saved documents:", e);
+                        localStorage.removeItem('docqna-documents'); // Clear corrupted data
+                    }
+                }
+    
+                // Check for saved theme preference
+                const savedTheme = localStorage.getItem('docqna-theme');
+                if (savedTheme === 'dark') {
+                    isDarkTheme = true;
+                    document.body.classList.add('dark-theme');
+                }
+                // Update icon regardless of saved state to ensure it matches initial state
+                updateThemeIcon();
+            }
+    
+            function handleDragOver(e) {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            }
+    
+            function handleDragLeave(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+            }
+    
+            function handleDrop(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+    
+                 // --- IMPORTANT CORRECTION for Backend Compatibility ---
+                // Your current backend /api/upload handles ONE file at a time (file: UploadFile = File(...))
+                // Modify the logic to process only the FIRST file dropped/selected if multiple are given.
+                if (e.dataTransfer.files.length > 0) {
+                    // Process only the first file to match backend endpoint
+                    const firstFile = [e.dataTransfer.files[0]];
+                    processFiles(firstFile);
+                    if (e.dataTransfer.files.length > 1) {
+                         addMessage('system', 'Note: Only the first selected file was uploaded as the backend currently handles one at a time.');
+                    }
+                }
+                 // --------------------------------------------------
+            }
+    
+            function handleFileSelect(e) {
+                 // --- IMPORTANT CORRECTION for Backend Compatibility ---
+                if (e.target.files.length > 0) {
+                     // Process only the first file to match backend endpoint
+                    const firstFile = [e.target.files[0]];
+                    processFiles(firstFile);
+                    if (e.target.files.length > 1) {
+                         addMessage('system', 'Note: Only the first selected file was uploaded as the backend currently handles one at a time.');
+                    }
+                }
+                // Reset input value to allow selecting the same file again
+                e.target.value = '';
+                 // --------------------------------------------------
+            }
+    
+            // --- UPDATED processFiles Function ---
+            async function processFiles(files) {
+                // Since backend handles one file, we expect `files` array to have only one element here
+                if (!files || files.length === 0) {
+                     console.error("processFiles called with no files.");
+                     return;
+                }
+                const fileToUpload = files[0]; // Get the single file
+    
+                showLoading(`Uploading and processing ${fileToUpload.name}...`);
+    
+                const formData = new FormData();
+                // --- Appending the SINGLE File to FormData ---
+                // The key here MUST match the parameter name in your FastAPI function signature
+                // Your Python code has `file: UploadFile = File(...)`, so the key MUST be 'file'.
+                formData.append('file', fileToUpload, fileToUpload.name); // <-- CORRECT KEY IS 'file'
+                // -------------------------------------------
+    
+                // Keep local info for the single file
+                const localFileInfo = {
+                    name: fileToUpload.name,
+                    size: formatFileSize(fileToUpload.size),
+                    type: getFileType(fileToUpload.name),
+                    uploadDate: new Date().toISOString()
+                };
+    
+                // [Optional] Append other form data if needed (like before)
+                // formData.append('user_id', 'user123');
+    
+                try {
+                    const response = await fetch(UPLOAD_ENDPOINT, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                             'Accept': 'application/json'
+                        }
+                    });
+    
+                    if (!response.ok) {
+                        let errorDetail = 'Server returned an error.';
+                        try {
+                            const errorData = await response.json();
+                            errorDetail = errorData.detail || JSON.stringify(errorData);
+                        } catch (e) {
+                           errorDetail = await response.text();
+                        }
+                        console.error(`Upload failed response: ${response.status} ${response.statusText}`, errorDetail);
+                        throw new Error(`Upload failed: ${response.status}. ${errorDetail}`);
+                    }
+    
+                    // Expecting { document_id: "...", filename: "...", message: "..." } from backend
+                    const result = await response.json();
+    
+                    console.log('Backend upload response:', result); // Check this log in browser console
+    
+                    // --- CORRECTED Check for Backend Response ---
+                    // Check if the response has the fields defined in the UploadResponse Pydantic model
+                    if (result && result.document_id && result.filename) {
+    
+                        // Add the single processed document to the frontend state
+                        documents.push({
+                            id: result.document_id,         // Use ID from backend result
+                            name: result.filename,        // Use filename from backend result
+                            size: localFileInfo.size,     // Use local info for size
+                            type: localFileInfo.type,     // Use local info for type
+                            uploadDate: localFileInfo.uploadDate // Use local info for upload date
+                        });
+    
+                         updateDocumentList();
+                         saveDocuments();
+                         updateChatState();
+                         hideLoading();
+                         // Use the message from the backend response, or a default
+                         const successMessage = result.message || `Document '${result.filename}' processed successfully.`;
+                         addMessage('system', successMessage);
+    
+                    } else {
+                        // This path is taken if the response was 200 OK, but JSON didn't contain expected fields
+                        console.error("Upload response from backend was not in the expected format:", result);
+                         throw new Error("Received unexpected response format from server after upload.");
+                    }
+                    // --- END CORRECTED Check ---
+    
+                } catch (error) {
+                    console.error('Error during file upload process:', error);
+                    hideLoading();
+                    const errorMsg = error.message.includes("Failed to fetch")
+                        ? "Could not connect to the server. Is it running and accessible? Check CORS."
+                        : error.message.includes("Upload failed:")
+                            ? `Upload failed. Server responded: ${error.message.split("Upload failed:")[1]}`
+                            : error.message.includes("Received unexpected response format")
+                                ? "Upload successful, but couldn't understand server response."
+                                : `An error occurred during upload: ${error.message}`;
+                    addMessage('system', errorMsg);
+                } finally {
+                     fileInput.value = ''; // Reset file input
+                }
+            }
+            // --- END UPDATED processFiles Function ---
+    
+    
+            function updateDocumentList() {
+                documentList.innerHTML = '';
+                const count = documents.length;
+                documentCount.textContent = `${count} document${count !== 1 ? 's' : ''}`;
+    
+                if (count === 0) {
+                    const emptyMessage = document.createElement('li');
+                    emptyMessage.className = 'empty-message';
+                    emptyMessage.textContent = 'No documents uploaded yet';
+                    documentList.appendChild(emptyMessage);
+                    clearDocsBtn.disabled = true;
+                    return;
+                }
+    
+                clearDocsBtn.disabled = false;
+    
+                // Sort documents by upload date, newest first
+                const sortedDocuments = [...documents].sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+    
+                sortedDocuments.forEach(doc => {
+                    const li = document.createElement('li');
+                    li.className = 'document-item';
+                    li.dataset.docId = doc.id;
+                    li.innerHTML = `
+                        <div class="document-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        </div>
+                        <div class="document-info">
+                            <div class="document-name" title="${doc.name}">${doc.name}</div>
+                            <div class="document-meta">${doc.size} • Uploaded ${formatDate(doc.uploadDate)}</div>
+                        </div>
+                        <div class="document-actions">
+                            <button class="delete-document" data-id="${doc.id}" title="Delete document">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    `;
+    
+                    documentList.appendChild(li);
+    
+                    const deleteBtn = li.querySelector('.delete-document');
+                    deleteBtn.addEventListener('click', (e) => {
+                         e.stopPropagation();
+                        deleteDocument(doc.id);
+                    });
+                });
+            }
+    
+            function deleteDocument(id) {
+                 // Optional: Add backend call to delete index if needed
+                documents = documents.filter(doc => doc.id !== id);
+                updateDocumentList();
+                saveDocuments();
+                updateChatState();
+                addMessage('system', 'Document removed from list.');
+            }
+    
+            function clearDocuments() {
+                if (documents.length === 0) return;
+                if (confirm('Are you sure you want to remove all documents from this list?')) {
+                    documents = [];
+                    updateDocumentList();
+                    saveDocuments();
+                    updateChatState();
+                    addMessage('system', 'All documents cleared from the list.');
+                }
+            }
+    
+            function saveDocuments() {
+                localStorage.setItem('docqna-documents', JSON.stringify(documents));
+            }
+    
+            function updateChatState() {
+                const hasDocuments = documents.length > 0;
+                chatInput.disabled = !hasDocuments;
+                sendButton.disabled = !hasDocuments;
+                chatInput.placeholder = hasDocuments
+                    ? 'Ask a question about your documents...'
+                    : 'Upload a document first to start chatting...';
+            }
+    
+            // --- UPDATED handleChatSubmit ---
+        async function handleChatSubmit(e) {
+             e.preventDefault();
+             const message = chatInput.value.trim();
+             if (!message || documents.length === 0) return;
+
+             addMessage('user', message);
+             chatInput.value = '';
+             showTypingIndicator();
+             sendButton.disabled = true;
+
+             const latestDocument = documents.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate))[0];
+             if (!latestDocument) {
+                 hideTypingIndicator();
+                 addMessage('system', 'Error: No document selected or available for query.');
+                 sendButton.disabled = false;
+                 return;
+             }
+             const documentIdToQuery = latestDocument.id;
+             console.log(`Sending query for document ID: ${documentIdToQuery} with question: ${message}`);
+
+             // --- *** THE FIX IS HERE *** ---
+             const payload = {
+                 question: message, // Use 'question' key to match Pydantic model
+                 document_id: documentIdToQuery
+             };
+             // --- *** END FIX *** ---
+
+             try {
+                 const response = await fetch(QUERY_ENDPOINT, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                     body: JSON.stringify(payload) // Send the corrected payload
+                 });
+
+                 hideTypingIndicator();
+
+                 if (!response.ok) {
+                     let errorDetail = `Server returned status ${response.status}`;
+                     try {
+                         // Attempt to get detailed error message from FastAPI's JSON response
+                         const errorData = await response.json();
+                         errorDetail = errorData.detail || JSON.stringify(errorData); // Use detail if available
+                     } catch (e) {
+                         // Fallback if response is not JSON or doesn't have detail
+                         try { errorDetail = await response.text(); } catch (textErr) { /* Ignore */ }
+                     }
+                     console.error(`Query failed response: ${response.status} ${response.statusText}`, errorDetail);
+                     // --- Improved Error Display ---
+                     throw new Error(`Query failed: ${response.status}. Details: ${errorDetail}`);
+                     // --- End Improved Error Display ---
+                 }
+
+                 const result = await response.json();
+
+                 if (result.answer) {
+                     addMessage('assistant', result.answer);
+                 } else {
+                     console.error("Query response missing 'answer':", result);
+                     addMessage('system', 'Received a response, but it was missing the answer content.');
+                 }
+
+             } catch (error) {
+                 console.error('Error querying documents:', error);
+                 hideTypingIndicator();
+                 // Use the improved error message from the throw statement above
+                 const errorMsg = error.message.includes("Failed to fetch")
+                     ? "Could not connect to the server for query. Check CORS/server status."
+                     : error.message; // Display the potentially detailed error
+                 addMessage('system', errorMsg);
+             } finally {
+                 sendButton.disabled = documents.length === 0;
+             }
+         }
+            // --- Other functions (addMessage, showTypingIndicator, etc.) remain the same ---
+            // ... (Paste the rest of the utility functions: addMessage, showTypingIndicator,
+            //      hideTypingIndicator, toggleTheme, updateThemeIcon, showLoading, hideLoading,
+            //      formatFileSize, getFileType, formatDate, formatTime, generateId) ...
+    
+    
+            function addMessage(type, content) {
+                const safeContent = content.replace(/</g, "<").replace(/>/g, ">");
+    
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+    
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'message-icon';
+                 if (type === 'user') {
+                    iconDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+                } else if (type === 'assistant') {
+                    iconDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="m8 14 4 4 4-4"></path></svg>';
+                } else { // system
+                     iconDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+                }
+    
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+    
+                const messageText = document.createElement('div');
+                messageText.textContent = safeContent;
+    
+                const messageTime = document.createElement('div');
+                messageTime.className = 'message-time';
+                messageTime.textContent = formatTime(new Date());
+    
+                messageContent.appendChild(messageText);
+                messageContent.appendChild(messageTime);
+                messageDiv.appendChild(iconDiv);
+                messageDiv.appendChild(messageContent);
+    
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+    
+            function showTypingIndicator() {
+                if (document.getElementById('typing-indicator')) return;
+    
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message assistant typing-indicator';
+                typingDiv.id = 'typing-indicator';
+    
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'message-icon';
+                iconDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="m8 14 4 4 4-4"></path></svg>';
+    
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+    
+                const dotsWrapper = document.createElement('div');
+                dotsWrapper.className = 'typing-dots';
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'typing-dot';
+                    dotsWrapper.appendChild(dot);
+                }
+    
+                messageContent.appendChild(dotsWrapper);
+                typingDiv.appendChild(iconDiv);
+                typingDiv.appendChild(messageContent);
+    
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+    
+            function hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+    
+            function toggleTheme() {
+                isDarkTheme = !isDarkTheme;
+                document.body.classList.toggle('dark-theme', isDarkTheme);
+                updateThemeIcon();
+                localStorage.setItem('docqna-theme', isDarkTheme ? 'dark' : 'light');
+            }
+    
+            function updateThemeIcon() {
+                const themeIconSvg = themeToggle.querySelector('svg');
+                if (isDarkTheme) {
+                    themeIconSvg.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                    themeToggle.setAttribute('aria-label', 'Switch to light theme');
+                } else {
+                    themeIconSvg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                    themeToggle.setAttribute('aria-label', 'Switch to dark theme');
+                }
+            }
+    
+            function showLoading(message) {
+                loadingText.textContent = message || 'Processing...';
+                loadingOverlay.style.display = 'flex';
+                setTimeout(() => {
+                     loadingOverlay.classList.add('active');
+                }, 10);
+            }
+    
+            function hideLoading() {
+                loadingOverlay.classList.remove('active');
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 300); // Match CSS transition duration
+            }
+    
+            // Utility Functions
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.max(0, Math.floor(Math.log(bytes) / Math.log(k)));
+                const correctedIndex = Math.min(i, sizes.length - 1);
+                return parseFloat((bytes / Math.pow(k, correctedIndex)).toFixed(2)) + ' ' + sizes[correctedIndex];
+            }
+    
+            function getFileType(filename) {
+                const extension = filename.split('.').pop().toLowerCase();
+                const typeMap = {
+                    'pdf': 'PDF', 'docx': 'Word', 'doc': 'Word', 'txt': 'Text',
+                    'csv': 'CSV', 'json': 'JSON', 'pptx': 'PowerPoint', 'xlsx': 'Excel',
+                    'png': 'Image', 'jpg': 'Image', 'jpeg': 'Image', 'gif': 'Image', 'svg': 'Image'
+                };
+                return typeMap[extension] || `.${extension.toUpperCase()} File`;
+            }
+    
+             function formatDate(dateString) {
+                 try {
+                     const date = new Date(dateString);
+                     if (isNaN(date.getTime())) return 'Invalid Date';
+                     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                 } catch (e) {
+                     return 'Unknown Date';
+                 }
+             }
+    
+            function formatTime(date) {
+                 try {
+                    if (isNaN(date.getTime())) return '';
+                    return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+                 } catch (e) {
+                     return '';
+                 }
+            }
+    
+            function generateId() { // Less critical now backend provides ID
+                return 'frontend-' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+            }
+    
+    
+        }); // End DOMContentLoaded
+    </script>
+</body>
+</html>

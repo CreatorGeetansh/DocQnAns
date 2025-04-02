@@ -1,0 +1,15 @@
+fastapi[all]
+uvicorn
+python-dotenv
+langchain
+langchain-google-genai
+google-generativeai
+faiss-cpu
+pypdf
+python-docx
+Pillow
+easyocr
+torch # Add specific versions if needed
+tiktoken
+aiofiles
+langchain_community
