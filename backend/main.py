@@ -15,6 +15,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 # from langchain.memory import ConversationBufferMemory # Optional for history
 
 from .utils.logging_config import setup_logging, get_logger # Note the leading dot
+from .utils import config, processing
 from . import utils
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
@@ -41,12 +42,12 @@ app.add_middleware(
 # --- LLM Initialization ---
 try:
     llm = ChatGoogleGenerativeAI(
-        model=config.LLM_MODEL_NAME,
-        google_api_key=config.GOOGLE_API_KEY,
+        model=utils.config.LLM_MODEL_NAME,
+        google_api_key=utils.config.GOOGLE_API_KEY,
         temperature=0.6,
         convert_system_message_to_human=True,
     )
-    logger.info(f"Initialized LLM: {config.LLM_MODEL_NAME}")
+    logger.info(f"Initialized LLM: {utils.config.LLM_MODEL_NAME}")
 except Exception as e:
     logger.exception("Failed to initialize LLM model", exc_info=True)
     raise RuntimeError("Could not initialize LLM") from e
