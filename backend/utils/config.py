@@ -6,7 +6,7 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "faiss_indexes")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "models/embedding-001")
-LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gemini-1.5-turbo")
+LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gemini-2.0-flash")
 TESSERACT_LANG = os.getenv("TESSERACT_LANG", ['eng', 'hin'])
 
 # Ensure the directory for FAISS indexes exists
