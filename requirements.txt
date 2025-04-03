@@ -8,7 +8,7 @@ faiss-cpu
 pypdf
 python-docx
 Pillow
-pytesseract>=0.3.10,<0.4.0
+pytesseract
 tiktoken
 aiofiles
 langchain_community

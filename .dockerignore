@@ -1,0 +1,32 @@
+# .dockerignore
+
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Python cache and virtual environment files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/.env
+env/
+venv/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+.venv
+
+# IDE and OS specific files
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db
+
+# Local FAISS indexes (don't bundle potentially large/old indexes)
+faiss_indexes*/
+*.log

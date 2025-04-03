@@ -105,16 +105,7 @@ def load_document_text(file_path: str, file_type: str, file_name: str) -> List[D
             loader = Docx2txtLoader(file_path)
             docs = loader.load()
         elif file_type.startswith('image/'):
-            # Run potentially blocking Pytesseract OCR in a separate thread
-            # Note: asyncio.to_thread expects a sync function
             extracted_text = get_text_from_image_pytesseract(file_path)
-            # Removed await asyncio.to_thread as get_text_from_image_pytesseract is now called directly
-            # Reintroduced asyncio.to_thread as Pytesseract is blocking IO/CPU bound
-            # extracted_text = await asyncio.to_thread(get_text_from_image_pytesseract, file_path)
-            # Running sync for simplicity now, but be aware this *will block* the event loop
-            # Correct approach in async context:
-            # extracted_text = await asyncio.to_thread(get_text_from_image_pytesseract, file_path)
-            # Let's assume process_uploaded_file handles the async call correctly
 
             if extracted_text:
                 docs = [Document(page_content=extracted_text, metadata={"source": file_name, "page": 0})] # Assign page 0 for images
