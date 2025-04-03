@@ -163,21 +163,39 @@ async def health_check():
     logger.debug("Health check endpoint called")
     return {"status": "ok", "message": "Backend is running"}
 
-# --- Serve Frontend ---
-# Mount the 'frontend' directory to serve static files
-app.mount("/static", StaticFiles(directory="../frontend"), name="static")
+from pathlib import Path # Import Path
+APP_DIR = Path(__file__).resolve().parent.parent # This gets /app/backend, then .parent gets /app
+FRONTEND_DIR = APP_DIR / "frontend" # Construct path /app/frontend
+STATIC_DIR = FRONTEND_DIR 
+
+if not FRONTEND_DIR.is_dir():
+    logger.error(f"Frontend directory not found at expected path: {FRONTEND_DIR}")
+    # Decide how to handle this - raise error, log warning, etc.
+    # For now, we'll let StaticFiles raise its own error if it fails.
+    pass # Or raise RuntimeError("Critical frontend directory missing!")
+
+# Mount the 'frontend' directory using the absolute path within the container
+# Note: The URL path is still "/static", but the directory path is now absolute.
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """Serves the main HTML page."""
+    index_html_path = FRONTEND_DIR / "index.html" # Construct path /app/frontend/index.html
     try:
-        with open("../frontend/index.html", "r") as f:
+        # Use the absolute path to open the file
+        with open(index_html_path, "r") as f:
             html_content = f.read()
         return HTMLResponse(content=html_content)
     except FileNotFoundError:
-         logger.error("Frontend index.html not found.")
-         raise HTTPException(status_code=500, detail="Frontend not found.")
-
+         # Log the specific path that failed
+         logger.error(f"Frontend index.html not found at: {index_html_path}")
+         raise HTTPException(status_code=500, detail="Frontend index.html not found.")
+    except Exception as e:
+        logger.error(f"Error reading frontend index.html: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error serving frontend.")
+    
 # --- Run the App (for local development) ---
 # Use this block only if running `python main.py` directly
 if __name__ == "__main__":

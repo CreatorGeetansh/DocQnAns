@@ -26,7 +26,3 @@ pip-delete-this-directory.txt
 .vscode/
 *.DS_Store
 Thumbs.db
-
-# Local FAISS indexes (don't bundle potentially large/old indexes)
-faiss_indexes*/
-*.log
