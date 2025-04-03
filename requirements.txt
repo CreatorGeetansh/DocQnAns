@@ -8,8 +8,7 @@ faiss-cpu
 pypdf
 python-docx
 Pillow
-easyocr
-torch # Add specific versions if needed
+pytesseract>=0.3.10,<0.4.0
 tiktoken
 aiofiles
 langchain_community
