@@ -34,22 +34,24 @@ RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 # 5. Create Non-Root User (as root)
-# Create user *after* package installation
 RUN addgroup --system app \
     && adduser --system --ingroup app app
 
-# 6. Copy Application Code (as root, but set ownership)
-# Copy the rest of the application code
-# Use --chown to set the owner to the 'app' user we just created
+# 6. Create Required Application Directories (as root)
+#    Create directories needed by the app and set ownership
+#    Adjust directory names if your defaults/config change
+RUN mkdir logs faiss_indexes \
+    && chown app:app logs faiss_indexes
+    # Add any other dirs your app needs to write to here
+
+# 7. Copy Application Code (as root, but set ownership)
 COPY --chown=app:app . .
 
-# 7. Switch to Non-Root User
-# Switch user *before* running the application
+# 8. Switch to Non-Root User
 USER app
 
-# 8. Expose Port (doesn't matter if before/after USER switch)
+# 9. Expose Port
 EXPOSE 8000
 
-# 9. Run Application (as app user)
-# CMD will run as the 'app' user because of the preceding 'USER app' line
+# 10. Run Application (as app user)
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

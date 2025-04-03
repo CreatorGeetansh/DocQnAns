@@ -1,27 +1,49 @@
-# backend/utils/logging_config.py (Example using basicConfig)
-
 import logging
 import sys
-import os # Keep os import if needed elsewhere, but remove LOG_DIR specifics
+from logging.handlers import TimedRotatingFileHandler
+import os
 
-# Removed: LOG_DIR = "logs"
-# Removed: os.makedirs(LOG_DIR, exist_ok=True)
+LOG_DIR = "logs"
+LOG_FILE = os.path.join(LOG_DIR, "app.log")
 
-def setup_logging(log_level=logging.INFO):
-    """Sets up basic logging to stdout."""
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        # Use stream=sys.stdout or remove handler config to use default stderr
-        stream=sys.stdout,
-        # Removed: handlers=[ ... FileHandler ... ]
-    )
-    # Optionally silence noisy libraries
-    # logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+# Ensure log directory exists
+os.makedirs(LOG_DIR, exist_ok=True)
 
-def get_logger(name: str):
-    """Gets a logger instance."""
+# --- Configuration ---
+LOG_LEVEL = logging.INFO  # Change to logging.DEBUG for more verbose output
+LOG_FORMAT = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s:%(lineno)d - %(message)s"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+# --- Create Formatter ---
+formatter = logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT)
+
+# --- Create Handlers ---
+# Console Handler
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(formatter)
+
+# File Handler (Rotates logs daily, keeps 7 days of backup)
+file_handler = TimedRotatingFileHandler(
+    LOG_FILE, when="midnight", interval=1, backupCount=7, encoding="utf-8"
+)
+file_handler.setFormatter(formatter)
+
+# --- Configure Root Logger ---
+def setup_logging():
+    """Configures the root logger."""
+    root_logger = logging.getLogger()
+    root_logger.setLevel(LOG_LEVEL)
+
+    # Remove existing handlers if any (to avoid duplicates in frameworks like Uvicorn)
+    # for handler in root_logger.handlers[:]:
+    #     root_logger.removeHandler(handler)
+
+    if not root_logger.handlers: # Add handlers only if they haven't been added
+        root_logger.addHandler(console_handler)
+        root_logger.addHandler(file_handler)
+        root_logger.info("Logging configured.")
+
+# --- Get Logger ---
+def get_logger(name: str) -> logging.Logger:
+    """Gets a logger instance with the specified name."""
     return logging.getLogger(name)
-
-# Call setup when the module is imported (or call it explicitly in main.py)
-# setup_logging() # Or call setup_logging() once in backend/main.py
