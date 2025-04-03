@@ -30,13 +30,31 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# --- CORS Middleware ---
+# RENDER_EXTERNAL_URL is automatically set by Render.
+render_app_url = os.getenv("RENDER_EXTERNAL_URL") # e.g., https://your-app-name.onrender.com
+
+origins = []
+if render_app_url:
+    origins.append(render_app_url)
+else:
+    # Add a fallback or default if needed, or just allow all for initial testing
+    # WARNING: "*" is insecure for production. Be specific.
+    logger.warning("RENDER_EXTERNAL_URL not found, allowing all origins for CORS (insecure).")
+    origins.append("*") # Use with caution!
+
+# Allow localhost for local development testing (optional but helpful)
+origins.append("http://localhost")
+origins.append("http://localhost:8000") # Add any ports you use for local frontend dev
+origins.append("http://127.0.0.1")
+origins.append("http://127.0.0.1:8000")
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all for simplicity, restrict in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,  # List of origins allowed (use ["*"] for testing ONLY)
+    allow_credentials=True, # Allow cookies/authorization headers
+    allow_methods=["*"],    # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],    # Allow all headers
 )
 
 # --- LLM Initialization ---
